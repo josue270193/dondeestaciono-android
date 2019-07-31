@@ -1,0 +1,51 @@
+apply plugin: 'com.android.application'
+apply plugin: 'kotlin-android'
+apply plugin: 'kotlin-android-extensions'
+apply plugin: 'kotlin-kapt'
+apply plugin: 'androidx.navigation.safeargs.kotlin'
+
+android {
+    compileSdkVersion rootProject.compileSdkVersion
+    dataBinding {
+        enabled = true
+    }
+    defaultConfig {
+        applicationId "uni.app.dondeestacionomobile"
+        minSdkVersion rootProject.minSdkVersion
+        targetSdkVersion rootProject.targetSdkVersion
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        versionCode 1
+        versionName "1.0"
+        vectorDrawables.useSupportLibrary true
+    }
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+    kotlinOptions {
+        jvmTarget = "1.8"
+    }
+}
+
+dependencies {
+    kapt "androidx.room:room-compiler:$rootProject.roomVersion"
+    implementation"org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlinVersion"
+    implementation "androidx.appcompat:appcompat:$rootProject.appCompatVersion"
+    implementation "androidx.core:core-ktx:$rootProject.ktxVersion"
+    implementation "androidx.fragment:fragment-ktx:$rootProject.fragmentVersion"
+    implementation "androidx.navigation:navigation-fragment-ktx:$rootProject.navigationVersion"
+    implementation "androidx.navigation:navigation-ui-ktx:$rootProject.navigationVersion"
+    implementation "com.google.android.material:material:$rootProject.materialVersion"
+    implementation "com.google.android.gms:play-services-maps:$rootProject.mapsVersion"
+
+    // TEST DEPENDENCIES
+    androidTestImplementation "androidx.test.ext:junit:$rootProject.testExtJunit"
+    androidTestImplementation "androidx.test.espresso:espresso-core:$rootProject.espressoVersion"
+    testImplementation "junit:junit:$rootProject.junitVersion"
+}
