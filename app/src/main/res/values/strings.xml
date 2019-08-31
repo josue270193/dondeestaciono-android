@@ -1,4 +1,8 @@
 <resources>
     <string name="app_name">Donde Estaciono</string>
     <string name="title_activity_maps">Map</string>
+    <string name="about_it">Acerca</string>
+    <string name="parking_title">Estacionamientos</string>
+    <string name="parking_states">Estados</string>
+    <string name="zones_titles">Zonas</string>
 </resources>

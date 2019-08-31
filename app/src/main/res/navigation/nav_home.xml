@@ -5,6 +5,5 @@
 
     <fragment
         android:id="@+id/mapsFragment"
-        android:name="uni.app.dondeestacionomobile.fragment.MapsFragment"
-        android:label="MapsFragment" />
+        android:name="uni.app.dondeestacionomobile.fragment.MapsFragment" />
 </navigation>

@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item android:title="@string/parking_title">
+        <menu>
+            <item
+                android:title="@string/parking_states" />
+            <item
+                android:title="@string/zones_titles" />
+        </menu>
+    </item>
+
+    <item android:title="@string/about_it"/>
+</menu>
