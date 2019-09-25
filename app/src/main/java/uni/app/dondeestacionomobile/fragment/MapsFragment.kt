@@ -20,17 +20,15 @@ import uni.app.dondeestacionomobile.R
 import uni.app.dondeestacionomobile.databinding.FragmentMapsBinding
 import uni.app.dondeestacionomobile.model.Ruta
 import uni.app.dondeestacionomobile.service.RutaService
-import java.util.Arrays.asList
-import java.util.*
 
+const val PATTERN_GAP_LENGTH_PX = 5.0f
 
 class MapsFragment : Fragment(), OnMapReadyCallback, GoogleMap.OnPolylineClickListener,
     GoogleMap.OnPolygonClickListener {
 
-    private val PATTERN_GAP_LENGTH_PX = 5.0f
-    private val DOT = Dot()
-    private val GAP = Gap(PATTERN_GAP_LENGTH_PX)
-    private val PATTERN_POLYLINE_DOTTED = arrayListOf(GAP, DOT)
+    private val dot = Dot()
+    private val gap = Gap(PATTERN_GAP_LENGTH_PX)
+    private val patternPolyneDotted = arrayListOf(gap, dot)
     private val rutaService by lazy {
         RutaService.create()
     }
@@ -47,7 +45,7 @@ class MapsFragment : Fragment(), OnMapReadyCallback, GoogleMap.OnPolylineClickLi
         val binding = FragmentMapsBinding.inflate(inflater, container, false)
 
         val mapFragment = childFragmentManager
-            .findFragmentById(uni.app.dondeestacionomobile.R.id.map_fragment) as SupportMapFragment
+            .findFragmentById(R.id.map_fragment) as SupportMapFragment
         mapFragment.getMapAsync(this)
 
         return binding.root
@@ -136,8 +134,8 @@ class MapsFragment : Fragment(), OnMapReadyCallback, GoogleMap.OnPolylineClickLi
     }
 
     override fun onPolylineClick(polyline: Polyline) {
-        if ((polyline.pattern == null) || (!polyline.pattern!!.contains(DOT))) {
-            polyline.pattern = PATTERN_POLYLINE_DOTTED
+        if ((polyline.pattern == null) || (!polyline.pattern!!.contains(dot))) {
+            polyline.pattern = patternPolyneDotted
             showInformationRuta(polyline)
         } else {
             polyline.pattern = null

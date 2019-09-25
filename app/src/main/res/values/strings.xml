@@ -5,4 +5,8 @@
     <string name="parking_title">Estacionamientos</string>
     <string name="parking_states">Estados</string>
     <string name="zones_titles">Zonas</string>
+
+    <string name="channel_name">donde_estaciono</string>
+    <string name="channel_description">donde_estaciono Canal</string>
+
 </resources>

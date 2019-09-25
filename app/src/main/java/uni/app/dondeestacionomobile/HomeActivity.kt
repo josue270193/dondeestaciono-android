@@ -8,8 +8,6 @@ import androidx.drawerlayout.widget.DrawerLayout
 import androidx.navigation.NavController
 import androidx.navigation.findNavController
 import androidx.navigation.ui.AppBarConfiguration
-import androidx.navigation.ui.navigateUp
-import androidx.navigation.ui.setupActionBarWithNavController
 import uni.app.dondeestacionomobile.databinding.ActivityHomeBinding
 
 class HomeActivity : AppCompatActivity() {
@@ -20,25 +18,16 @@ class HomeActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        val binding: ActivityHomeBinding = DataBindingUtil.setContentView(this,
-            R.layout.activity_home)
+        val binding: ActivityHomeBinding = DataBindingUtil.setContentView(
+            this,
+            R.layout.activity_home
+        )
 
         drawerLayout = binding.drawerLayout
 
         navController = findNavController(R.id.home_nav_fragment)
         appBarConfiguration = AppBarConfiguration(navController.graph, drawerLayout)
-
-        // Set up ActionBar
-//        setSupportActionBar(binding.toolbar)
-//        setupActionBarWithNavController(navController, appBarConfiguration)
-
-        // Set up navigation menu
-//        binding.navigationView.setupWithNavController(navController)
     }
-
-//    override fun onSupportNavigateUp(): Boolean {
-//        return navController.navigateUp(appBarConfiguration) || super.onSupportNavigateUp()
-//    }
 
     override fun onBackPressed() {
         if (drawerLayout.isDrawerOpen(GravityCompat.START)) {
