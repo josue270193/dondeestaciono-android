@@ -6,6 +6,7 @@ buildscript {
         targetSdkVersion = 28
 
         // App dependencies
+        androidGsonJavatimeSerialisers = '2.1.2'
         appCompatVersion = '1.1.0'
         constraintLayoutVersion = '2.0.0-beta1'
         coreTestingVersion = '2.0.0'
@@ -32,6 +33,7 @@ buildscript {
         roomVersion = '2.1.0'
         runnerVersion = '1.0.1'
         rxAndroidVersion = '2.1.1'
+        threetenabpVersion = '1.2.1'
         truthVersion = '0.42'
         testExtJunit = '1.1.1'
         uiAutomatorVersion = '2.2.0'
@@ -57,6 +59,7 @@ allprojects {
     repositories {
         google()
         jcenter()
+        maven { url 'https://jitpack.io' }
     }
 }
 

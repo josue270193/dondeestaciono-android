@@ -14,8 +14,11 @@ import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers
-import uni.app.dondeestacionomobile.HomeActivity
+import org.threeten.bp.OffsetDateTime
 import uni.app.dondeestacionomobile.R
+import uni.app.dondeestacionomobile.activity.HomeActivity
+import uni.app.dondeestacionomobile.model.PhoneRegistrationDto
+import uni.app.dondeestacionomobile.service.rest.NotificationService
 
 const val NOTIFICATION_ID: String = "1000"
 const val TOKEN_TAG: String = "TOKEN"
@@ -29,7 +32,10 @@ class PushMessageService : FirebaseMessagingService() {
     @SuppressLint("CheckResult")
     override fun onNewToken(token: String) {
         Log.d(TOKEN_TAG, "token: $token")
-        notificationService.register(token)
+        val phoneRegistration = PhoneRegistrationDto()
+        phoneRegistration.token = token
+        phoneRegistration.dateTime = OffsetDateTime.now()
+        notificationService.register(phoneRegistration)
             .subscribeOn(Schedulers.io())
             .observeOn(AndroidSchedulers.mainThread())
             .subscribe({}, {

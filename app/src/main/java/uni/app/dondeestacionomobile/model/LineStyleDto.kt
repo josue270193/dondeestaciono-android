@@ -1,6 +1,6 @@
 package uni.app.dondeestacionomobile.model
 
-class LineaEstilo {
+class LineStyleDto {
 
     var color: String? = null
     var ancho: Float? = null

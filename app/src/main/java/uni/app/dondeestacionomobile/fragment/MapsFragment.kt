@@ -18,8 +18,8 @@ import io.reactivex.disposables.Disposable
 import io.reactivex.schedulers.Schedulers
 import uni.app.dondeestacionomobile.R
 import uni.app.dondeestacionomobile.databinding.FragmentMapsBinding
-import uni.app.dondeestacionomobile.model.Ruta
-import uni.app.dondeestacionomobile.service.RutaService
+import uni.app.dondeestacionomobile.model.RouteDto
+import uni.app.dondeestacionomobile.service.rest.RouteService
 
 const val PATTERN_GAP_LENGTH_PX = 5.0f
 
@@ -30,7 +30,7 @@ class MapsFragment : Fragment(), OnMapReadyCallback, GoogleMap.OnPolylineClickLi
     private val gap = Gap(PATTERN_GAP_LENGTH_PX)
     private val patternPolyneDotted = arrayListOf(gap, dot)
     private val rutaService by lazy {
-        RutaService.create()
+        RouteService.create()
     }
 
     private lateinit var mMap: GoogleMap
@@ -57,8 +57,8 @@ class MapsFragment : Fragment(), OnMapReadyCallback, GoogleMap.OnPolylineClickLi
         mMap.setOnPolylineClickListener(this)
         mMap.setOnPolygonClickListener(this)
 
-        setearCABA()
-        pruebaRest()
+        setCiudad()
+        testRoute()
     }
 
     private fun pintarLinea() {
@@ -78,34 +78,34 @@ class MapsFragment : Fragment(), OnMapReadyCallback, GoogleMap.OnPolylineClickLi
         polyline1.tag = "1"
     }
 
-    private fun pintaRuta(ruta: Ruta) {
-        Log.i("PintaRuta", "Id: ${ruta.id} - Nombre: ${ruta.nombre}")
+    private fun pintaRuta(routeDto: RouteDto) {
+        Log.i("PintaRuta", "Id: ${routeDto.id} - Nombre: ${routeDto.nombre}")
 
         val polylineOptions = PolylineOptions()
             .clickable(true)
-            .color(Color.parseColor(ruta.linea.color))
-            .width(ruta.linea.ancho!!)
+            .color(Color.parseColor(routeDto.linea.color))
+            .width(routeDto.linea.ancho!!)
 
-        ruta.puntos.forEach {
+        routeDto.puntos.forEach {
             Log.i("PintaRuta", "${it.latitud} - ${it.longitud}")
             polylineOptions.add(LatLng(it.latitud!!, it.longitud!!))
         }
 
         val polyline1 = mMap.addPolyline(polylineOptions)
-        polyline1.tag = ruta.id
+        polyline1.tag = routeDto.id
 
         // Se crear marker invisible
         val markerOptions = MarkerOptions()
             .position(polyline1.points.first())
-            .title(ruta.nombre?.split("-")?.first())
-            .snippet(ruta.nombre?.substring(ruta.nombre?.indexOf("-")!!))
+            .title(routeDto.nombre?.split("-")?.first())
+            .snippet(routeDto.nombre?.substring(routeDto.nombre?.indexOf("-")!!))
             .icon(BitmapDescriptorFactory.fromResource(R.drawable.punto))
         val marker1 = mMap.addMarker(markerOptions)
-        marker1.tag = ruta.id
+        marker1.tag = routeDto.id
         markers.add(marker1)
     }
 
-    private fun pruebaRest() {
+    private fun testRoute() {
         disposable = rutaService.getAll()
             .subscribeOn(Schedulers.io())
             .observeOn(AndroidSchedulers.mainThread())
@@ -121,7 +121,7 @@ class MapsFragment : Fragment(), OnMapReadyCallback, GoogleMap.OnPolylineClickLi
             )
     }
 
-    private fun setearCABA() {
+    private fun setCiudad() {
 //        val zoom = 11.5f
 //        val point = LatLng(-34.5963605, -58.4235825)
         val zoom = 15.5f

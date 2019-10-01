@@ -1,4 +1,4 @@
-package uni.app.dondeestacionomobile
+package uni.app.dondeestacionomobile.activity
 
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
@@ -8,6 +8,7 @@ import androidx.drawerlayout.widget.DrawerLayout
 import androidx.navigation.NavController
 import androidx.navigation.findNavController
 import androidx.navigation.ui.AppBarConfiguration
+import uni.app.dondeestacionomobile.R
 import uni.app.dondeestacionomobile.databinding.ActivityHomeBinding
 
 class HomeActivity : AppCompatActivity() {
