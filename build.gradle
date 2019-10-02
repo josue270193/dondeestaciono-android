@@ -25,7 +25,7 @@ buildscript {
         ktxVersion = '1.2.0-alpha04'
         lifecycleVersion = '2.2.0-alpha01'
         mapsVersion = '17.0.0'
-        materialVersion = '1.0.0'
+        materialVersion = '1.1.0-alpha10'
         navigationVersion = '2.2.0-alpha03'
         okHttpVersion = '4.2.0'
         recyclerViewVersion = '1.1.0-alpha05'

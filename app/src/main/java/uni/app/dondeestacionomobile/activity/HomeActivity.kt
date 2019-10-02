@@ -1,6 +1,10 @@
 package uni.app.dondeestacionomobile.activity
 
+import android.graphics.Color
+import android.os.Build
 import android.os.Bundle
+import android.view.View
+import android.view.WindowManager
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.GravityCompat
 import androidx.databinding.DataBindingUtil
@@ -11,6 +15,7 @@ import androidx.navigation.ui.AppBarConfiguration
 import uni.app.dondeestacionomobile.R
 import uni.app.dondeestacionomobile.databinding.ActivityHomeBinding
 
+
 class HomeActivity : AppCompatActivity() {
 
     private lateinit var drawerLayout: DrawerLayout
@@ -19,13 +24,12 @@ class HomeActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
         val binding: ActivityHomeBinding = DataBindingUtil.setContentView(
             this,
             R.layout.activity_home
         )
-
         drawerLayout = binding.drawerLayout
-
         navController = findNavController(R.id.home_nav_fragment)
         appBarConfiguration = AppBarConfiguration(navController.graph, drawerLayout)
     }
