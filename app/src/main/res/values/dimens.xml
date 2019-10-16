@@ -6,6 +6,6 @@
     <dimen name="activity_horizontal_margin">16dp</dimen>
     <dimen name="activity_vertical_margin">16dp</dimen>
 
-    <dimen name="search_box_margin_top">28dp</dimen>
-    <dimen name="search_box_margin_horizontal">8dp</dimen>
+    <dimen name="search_box_margin_top">8dp</dimen>
+    <dimen name="search_box_margin_horizontal">4dp</dimen>
 </resources>

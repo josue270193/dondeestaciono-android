@@ -8,5 +8,6 @@
 
     <string name="channel_name">donde_estaciono</string>
     <string name="channel_description">donde_estaciono Canal</string>
+    <string name="search_box_tips">Buscar dirección</string>
 
 </resources>

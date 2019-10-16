@@ -2,6 +2,6 @@ package uni.app.dondeestacionomobile.model
 
 class PointDto {
 
-    var longitud: Double? = null
-    var latitud: Double? = null
+    var longitude: Double? = null
+    var latitude: Double? = null
 }

@@ -2,12 +2,26 @@ package uni.app.dondeestacionomobile.service.rest
 
 import io.reactivex.Observable
 import retrofit2.http.GET
+import retrofit2.http.Query
 import uni.app.dondeestacionomobile.model.RouteDto
 import uni.app.dondeestacionomobile.util.WebClienteUtil
 
 interface RouteService {
     @GET("route/")
     fun getAll(): Observable<List<RouteDto>>
+
+    @GET("route/filter")
+    fun getByPosition(
+        @Query("latitude") latitude: Double,
+        @Query("longitude") longitude: Double
+    ): Observable<List<RouteDto>>
+
+    @GET("route/filterByRadius")
+    fun getByRadius(
+        @Query("latitude") latitude: Double,
+        @Query("longitude") longitude: Double,
+        @Query("radius") radius: Double
+    ): Observable<List<RouteDto>>
 
     companion object {
         fun create(): RouteService {

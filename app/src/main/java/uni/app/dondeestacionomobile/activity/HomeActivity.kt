@@ -1,10 +1,6 @@
 package uni.app.dondeestacionomobile.activity
 
-import android.graphics.Color
-import android.os.Build
 import android.os.Bundle
-import android.view.View
-import android.view.WindowManager
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.GravityCompat
 import androidx.databinding.DataBindingUtil
@@ -14,10 +10,9 @@ import androidx.navigation.findNavController
 import androidx.navigation.ui.AppBarConfiguration
 import uni.app.dondeestacionomobile.R
 import uni.app.dondeestacionomobile.databinding.ActivityHomeBinding
+import uni.app.dondeestacionomobile.listener.INavigationDrawerAction
 
-
-class HomeActivity : AppCompatActivity() {
-
+class HomeActivity : AppCompatActivity(), INavigationDrawerAction {
     private lateinit var drawerLayout: DrawerLayout
     private lateinit var appBarConfiguration: AppBarConfiguration
     private lateinit var navController: NavController
@@ -40,5 +35,17 @@ class HomeActivity : AppCompatActivity() {
         } else {
             super.onBackPressed()
         }
+    }
+
+    override fun openDrawer() {
+        drawerLayout.openDrawer(GravityCompat.START)
+    }
+
+    override fun lockDrawer() {
+        drawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED)
+    }
+
+    override fun unlockDrawer() {
+        drawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_UNLOCKED)
     }
 }

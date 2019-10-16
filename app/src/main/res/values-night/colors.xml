@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="colorSearchBoxBackground">#333333</color>
+    <color name="colorSearchBoxLine">#CCCCCC</color>
+    <color name="colorIcon">#FFFFFF</color>
+</resources>

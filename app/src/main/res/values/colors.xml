@@ -3,8 +3,15 @@
     <color name="colorPrimary">#1565c0</color>
     <color name="colorPrimaryDark">#003c8f</color>
     <color name="colorAccent">#1565c0</color>
-    <color name="statusBarBackgroundColor">#FFFFFF</color>
 
-    <color name="search_box_background">#FFFFFF</color>
-    <color name="search_box_line">#9B9B9B</color>
+    <color name="colorSearchBoxBackground">#FFFFFF</color>
+    <color name="colorSearchBoxLine">#9B9B9B</color>
+    <color name="colorIcon">#000000</color>
+
+    <color name="colorLineDefault">#000000</color>
+    <color name="colorLineProhibidoEstacionar">#FF7600</color>
+    <color name="colorLineProhibidoDetenerse">#4A148C</color>
+    <color name="colorLineHabilitado">#52B952</color>
+    <color name="colorLineHabilitado2">#006064</color>
+    <color name="colorLineHabilitado3">#1B5E20</color>
 </resources>
