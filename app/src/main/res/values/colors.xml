@@ -1,17 +1,24 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="colorPrimary">#1565c0</color>
-    <color name="colorPrimaryDark">#003c8f</color>
-    <color name="colorAccent">#1565c0</color>
+    <color name="colorPrimary">#AFC1D8</color>
+    <color name="colorPrimaryDark">#001B26</color>
+    <color name="colorAccent">#2196F3</color>
+    <color name="colorText">#666666</color>
+    <color name="colorTextLight">#CCCCCC</color>
 
     <color name="colorSearchBoxBackground">#FFFFFF</color>
     <color name="colorSearchBoxLine">#9B9B9B</color>
-    <color name="colorIcon">#000000</color>
+    <color name="colorMenuIcon">#000000</color>
+    <color name="colorBackgroundFloating">#FFFFFF</color>
+    <color name="colorBottomSheetBackground">#FFFFFF</color>
 
     <color name="colorLineDefault">#000000</color>
     <color name="colorLineProhibidoEstacionar">#FF7600</color>
     <color name="colorLineProhibidoDetenerse">#4A148C</color>
-    <color name="colorLineHabilitado">#52B952</color>
+    <color name="colorLineHabilitado1">#52B952</color>
     <color name="colorLineHabilitado2">#006064</color>
     <color name="colorLineHabilitado3">#1B5E20</color>
+
+    <color name="colorLineHabilitado">#0FD600</color>
+    <color name="colorLineNoHabilitado">#F26735</color>
 </resources>

@@ -1,9 +1,9 @@
 package uni.app.dondeestacionomobile.model
 
-import uni.app.dondeestacionomobile.model.enumerate.RouteTypePermit
+import uni.app.dondeestacionomobile.model.enumerate.TypeRoutePermit
 
 class RouteScheduleDto {
 
-    var permit: RouteTypePermit? = null
+    var permit: TypeRoutePermit? = null
     var details: List<RouteScheduleDetailDto> = arrayListOf()
 }

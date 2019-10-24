@@ -62,7 +62,7 @@ class PushMessageService : FirebaseMessagingService() {
         val pendingIntent: PendingIntent = PendingIntent.getActivity(this, 0, intent, 0)
 
         return NotificationCompat.Builder(applicationContext, NOTIFICATION_ID)
-            .setSmallIcon(R.drawable.logo)
+            .setSmallIcon(R.drawable.ic_notification)
             .setContentTitle("Prueba Notification")
             .setContentText("Much longer text that cannot fit one line...")
             .setStyle(

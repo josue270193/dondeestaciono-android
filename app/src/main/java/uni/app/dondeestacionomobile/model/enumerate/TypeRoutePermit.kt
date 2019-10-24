@@ -1,6 +1,6 @@
 package uni.app.dondeestacionomobile.model.enumerate
 
-enum class RouteTypePermit(val value: String) {
+enum class TypeRoutePermit(val value: String) {
     PROHIBIDO_ESTACIONAR("PROHIBIDO ESTACIONAR"),
     PROHIBIDO_ESTACIONAR_DETENERSE("PROHIBIDO ESTACIONAR Y DETENERSE"),
     PERMITIDO_ESTACIONAR("PERMITIDO ESTACIONAR"),

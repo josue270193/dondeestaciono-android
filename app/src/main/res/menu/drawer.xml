@@ -1,15 +1,29 @@
 <?xml version="1.0" encoding="utf-8"?>
-<menu xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:android="http://schemas.android.com/apk/res/android">
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
 
-    <item android:title="@string/parking_title">
+    <item android:title="@string/options_title">
         <menu>
             <item
-                android:title="@string/parking_states" />
+                android:id="@+id/option_estacionamiento"
+                android:icon="@drawable/ic_my_location"
+                android:title="@string/parking_titles"
+                app:actionViewClass="android.widget.Switch" />
             <item
-                android:title="@string/zones_titles" />
+                android:id="@+id/option_zonas"
+                android:icon="@drawable/ic_alerta_roja"
+                android:title="@string/zones_titles"
+                app:actionViewClass="android.widget.Switch"
+                app:showAsAction="ifRoom" />
+            <item
+                android:id="@+id/option_cortes"
+                android:icon="@drawable/ic_alerta_amarilla"
+                android:title="@string/blocks_titles"
+                app:actionViewClass="android.widget.Switch"
+                app:showAsAction="ifRoom" />
+
         </menu>
     </item>
 
-    <item android:title="@string/about_it"/>
+    <item android:title="@string/about_it" />
 </menu>
