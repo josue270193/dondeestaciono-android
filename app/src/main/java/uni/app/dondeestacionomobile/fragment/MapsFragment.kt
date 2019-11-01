@@ -3,8 +3,6 @@ package uni.app.dondeestacionomobile.fragment
 import android.Manifest
 import android.app.Activity
 import android.content.Context
-import android.graphics.Bitmap
-import android.graphics.Canvas
 import android.location.Location
 import android.os.Bundle
 import android.os.Looper
@@ -12,22 +10,39 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.EditText
 import android.widget.LinearLayout
 import androidx.core.content.ContextCompat
 import androidx.core.graphics.drawable.DrawableCompat
 import androidx.fragment.app.Fragment
-import com.google.android.gms.location.*
+import com.google.android.gms.location.FusedLocationProviderClient
+import com.google.android.gms.location.LocationCallback
+import com.google.android.gms.location.LocationRequest
+import com.google.android.gms.location.LocationResult
+import com.google.android.gms.location.LocationServices
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
-import com.google.android.gms.maps.model.*
+import com.google.android.gms.maps.model.LatLng
+import com.google.android.gms.maps.model.MapStyleOptions
+import com.google.android.gms.maps.model.Marker
+import com.google.android.gms.maps.model.Polygon
+import com.google.android.gms.maps.model.Polyline
+import com.google.android.gms.maps.model.PolylineOptions
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.Disposable
 import io.reactivex.schedulers.Schedulers
-import kotlinx.android.synthetic.main.bottom_sheet_maps.*
+import kotlinx.android.synthetic.main.layout_details_maps.layout_corte_details
+import kotlinx.android.synthetic.main.layout_details_maps.layout_estacionamiento_details
+import kotlinx.android.synthetic.main.layout_details_maps.text_calle
+import kotlinx.android.synthetic.main.layout_details_maps.text_creado
+import kotlinx.android.synthetic.main.layout_details_maps.text_horario
+import kotlinx.android.synthetic.main.layout_details_maps.text_tipo
+import kotlinx.android.synthetic.main.layout_details_maps.text_tipo_estacionamiento
+import kotlinx.android.synthetic.main.layout_details_maps.text_tweet
 import org.threeten.bp.DayOfWeek
 import org.threeten.bp.OffsetDateTime
 import pub.devrel.easypermissions.AfterPermissionGranted
@@ -41,23 +56,29 @@ import uni.app.dondeestacionomobile.model.RouteScheduleDto
 import uni.app.dondeestacionomobile.model.enumerate.TypeRouteBlock
 import uni.app.dondeestacionomobile.model.enumerate.TypeRoutePermit
 import uni.app.dondeestacionomobile.service.rest.RouteService
-import java.util.*
-import java.util.concurrent.TimeUnit
-import kotlin.math.max
-import kotlin.math.min
-import kotlin.math.pow
-import kotlin.math.sqrt
+import uni.app.dondeestacionomobile.util.GoogleMapUtil
+import uni.app.dondeestacionomobile.util.GoogleMapUtil.Companion.createMarker
+import uni.app.dondeestacionomobile.util.GoogleMapUtil.Companion.getCenter
+import uni.app.dondeestacionomobile.util.GoogleMapUtil.Companion.patternDot
+import uni.app.dondeestacionomobile.util.ImageUtil.Companion.bitmapDescriptorFromVector
+import uni.app.dondeestacionomobile.util.KeyboardUtil.Companion.hideSoftKeyboard
+import uni.app.dondeestacionomobile.util.TimeUtil.Companion.calculateTimeLapse
+import java.util.HashMap
+import java.util.Timer
+import java.util.TimerTask
 
-const val PATTERN_GAP_LENGTH_PX = 5.0F
-const val ZOOM_MIN: Float = 15.5F
 const val REQUEST_CODE_FINE_LOCATION = 100
-const val ZOOM_DEFAULT: Float = 16F
-const val WIDTH_LINE_DEFAULT: Float = 10F
-const val RADIUS_DEFAULT: Float = 16F
-const val LATITUDE_DEFAULT: Double = -34.6163605
-const val LONGITUDE_DEFAULT: Double = -58.3805825
-const val INTERVAL_LOCATION_MILISECOND: Long = 5000
-const val TIME_TIMER_UPDATE: Long = 60000
+const val MAP_ESTACIONAMIENTO_LINE_WIDTH: Float = 10F
+const val MAP_RADIUS_DEFAULT: Float = 16F
+const val MAP_LATITUDE_DEFAULT: Double = -34.6163605
+const val MAP_LONGITUDE_DEFAULT: Double = -58.3805825
+const val MAP_INTERVAL_LOCATION: Long = 5000
+const val MAP_SMALL_DISPLACEMENT: Float = 100F
+const val MAP_MY_LOCATION_ZINDEX: Float = 100F
+const val MAP_ZOOM_MIN: Float = 15.5F
+const val MAP_ZOOM_ESTACIONAMIENTO: Float = 17F
+const val MAP_ZOOM_MY_LOCATION: Float = 16F
+const val TIMER_UPDATE: Long = 60000
 
 const val WORD_COMA: String = ","
 const val WORD_MONDAY: String = "MO"
@@ -68,47 +89,47 @@ const val WORD_FRIDAY = "FR"
 const val WORD_SUNDAY = "SU"
 const val WORD_SATURDAY = "SA"
 
-class MapsFragment : Fragment(), OnMapReadyCallback, GoogleMap.OnPolylineClickListener,
-    GoogleMap.OnPolygonClickListener, GoogleMap.OnCameraIdleListener,
-    GoogleMap.OnCameraMoveStartedListener, GoogleMap.OnMapClickListener,
-    GoogleMap.OnMarkerClickListener {
+class MapsFragment : Fragment(),
+    OnMapReadyCallback,
+    GoogleMap.OnPolylineClickListener, GoogleMap.OnPolygonClickListener,
+    GoogleMap.OnCameraIdleListener, GoogleMap.OnCameraMoveStartedListener,
+    GoogleMap.OnMapClickListener, GoogleMap.OnMarkerClickListener {
 
-    private lateinit var rutaService: RouteService
-    private lateinit var fusedLocationClient: FusedLocationProviderClient
+    private lateinit var routeService: RouteService
+    private lateinit var locationClient: FusedLocationProviderClient
     private lateinit var locationRequest: LocationRequest
-    private lateinit var locationCallBack: LocationCallback
-    private lateinit var timer: Timer
+    private lateinit var locationCallback: LocationCallback
+    private lateinit var timerDrawing: Timer
+    private lateinit var map: GoogleMap
+    private lateinit var navigationAction: INavigationDrawerAction
 
-    private lateinit var mMap: GoogleMap
-    private lateinit var actionNavigation: INavigationDrawerAction
     private lateinit var myLocationButton: FloatingActionButton
+    private lateinit var layoutDetails: LinearLayout
     private lateinit var bottomSheetBehavior: BottomSheetBehavior<LinearLayout>
+    private lateinit var searchBox: EditText
 
     private var disposable: Disposable? = null
     private var lastLocation: Location? = null
     private var lastLocationMarker: Marker? = null
     private var isMyLocationEnabled: Boolean = false
     private var isShowDetails: Boolean = false
-    private var mapEstacionamiento: HashMap<String, RouteDto> = hashMapOf()
-    private var mapCorte: HashMap<String, BlockRouteDto> = hashMapOf()
+    private var estacionamientos: HashMap<String, RouteDto> = hashMapOf()
+    private var cortes: HashMap<String, BlockRouteDto> = hashMapOf()
 
     override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?
+        inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
     ): View? {
         val binding = FragmentMapsBinding.inflate(inflater, container, false)
-
-        val mapFragment = childFragmentManager
-            .findFragmentById(R.id.fragment_maps) as SupportMapFragment
+        val mapFragment =
+            childFragmentManager.findFragmentById(R.id.fragment_maps) as SupportMapFragment
         mapFragment.getMapAsync(this)
-        setUi(binding)
+        setUiConfiguration(binding)
         return binding.root
     }
 
     override fun onResume() {
         super.onResume()
-        createTimerUpdate()
+        createTimerDrawing()
         if (isMyLocationEnabled) {
             setMyLocation()
         }
@@ -116,10 +137,9 @@ class MapsFragment : Fragment(), OnMapReadyCallback, GoogleMap.OnPolylineClickLi
 
     override fun onPause() {
         super.onPause()
-        timer.cancel()
+        timerDrawing.cancel()
         disposable?.dispose()
-        stopLocationUpdates()
-
+        stopMyLocationUpdates()
     }
 
     override fun onRequestPermissionsResult(
@@ -132,24 +152,25 @@ class MapsFragment : Fragment(), OnMapReadyCallback, GoogleMap.OnPolylineClickLi
     }
 
     override fun onMapReady(googleMap: GoogleMap) {
-        mMap = googleMap
-        mMap.setOnPolylineClickListener(this)
-        mMap.setOnPolygonClickListener(this)
-        mMap.setOnMarkerClickListener(this)
-        mMap.setOnMapClickListener(this)
-        mMap.setOnCameraIdleListener(this)
-        mMap.setOnCameraMoveStartedListener(this)
-        mMap.uiSettings.isCompassEnabled = true
-        mMap.setMapStyle(MapStyleOptions.loadRawResourceStyle(context, R.raw.maps_style))
-
-        setCiudad()
+        map = googleMap
+        map.setOnPolylineClickListener(this)
+        map.setOnPolygonClickListener(this)
+        map.setOnMarkerClickListener(this)
+        map.setOnMapClickListener(this)
+        map.setOnCameraIdleListener(this)
+        map.setOnCameraMoveStartedListener(this)
+        map.uiSettings.isCompassEnabled = true
+        map.uiSettings.isMapToolbarEnabled = true
+        map.setMapStyle(MapStyleOptions.loadRawResourceStyle(context, R.raw.maps_style))
+        setMyLocation()
     }
 
     override fun onMapClick(position: LatLng?) {
-
+        hideKeyboard()
     }
 
     override fun onCameraMoveStarted(reason: Int) {
+        hideKeyboard()
         when (reason) {
             GoogleMap.OnCameraMoveStartedListener.REASON_GESTURE -> {
                 collapseDetails()
@@ -165,13 +186,13 @@ class MapsFragment : Fragment(), OnMapReadyCallback, GoogleMap.OnPolylineClickLi
     }
 
     override fun onCameraIdle() {
-        if (actionNavigation.isEnabledEstacionamiento()) {
-            val latitude = mMap.cameraPosition.target.latitude
-            val longitude = mMap.cameraPosition.target.longitude
-            val radius = getMapVisibleRadius()
+        if (navigationAction.isEnabledEstacionamiento()) {
+            val latitude = map.cameraPosition.target.latitude
+            val longitude = map.cameraPosition.target.longitude
+            val radius = GoogleMapUtil.getVisibleRadius(map)
 
-            if (mMap.cameraPosition.zoom > ZOOM_MIN) {
-                getDataEstacionamiento(latitude, longitude, radius)
+            if (map.cameraPosition.zoom > MAP_ZOOM_MIN) {
+                getEstacionamientos(latitude, longitude, radius)
             }
         }
     }
@@ -193,29 +214,33 @@ class MapsFragment : Fragment(), OnMapReadyCallback, GoogleMap.OnPolylineClickLi
         showInformationEstacionamiento(polyline)
     }
 
-    private fun setUi(binding: FragmentMapsBinding) {
-
-        rutaService = RouteService.create()
-
-        fusedLocationClient = LocationServices.getFusedLocationProviderClient(context!!)
-        locationRequest = LocationRequest()
-        locationRequest.interval = INTERVAL_LOCATION_MILISECOND
-        locationRequest.fastestInterval = INTERVAL_LOCATION_MILISECOND
-        locationRequest.priority = LocationRequest.PRIORITY_HIGH_ACCURACY
-        locationCallBack = object : LocationCallback() {
-            override fun onLocationResult(locationResult: LocationResult?) {
-                locationResult ?: return
-                if (locationResult.locations.isNotEmpty()) {
-                    lastLocation = locationResult.lastLocation
-                    setUiMyLocation(lastLocation!!)
-                }
-            }
+    @AfterPermissionGranted(REQUEST_CODE_FINE_LOCATION)
+    private fun setMyLocation() {
+        val perms = arrayOf(Manifest.permission.ACCESS_FINE_LOCATION)
+        if (EasyPermissions.hasPermissions(activity as Context, *perms)) {
+            locationClient.requestLocationUpdates(
+                locationRequest,
+                locationCallback,
+                Looper.getMainLooper()
+            )
+        } else {
+            EasyPermissions.requestPermissions(
+                this, getString(R.string.app_name),
+                REQUEST_CODE_FINE_LOCATION, *perms
+            )
+            setCiudad()
         }
+    }
 
-        actionNavigation = activity as INavigationDrawerAction
+    private fun setUiConfiguration(binding: FragmentMapsBinding) {
+        configurateServices()
+        configurateMyLocation()
 
+        navigationAction = activity as INavigationDrawerAction
+
+        layoutDetails = binding.layoutDetailsMaps.layoutDetails
         bottomSheetBehavior =
-            BottomSheetBehavior.from(binding.bottomSheetLayoutMaps.bottomSheetLayout)
+            BottomSheetBehavior.from(layoutDetails)
         bottomSheetBehavior.addBottomSheetCallback(object :
             BottomSheetBehavior.BottomSheetCallback() {
             override fun onStateChanged(bottomSheet: View, newState: Int) {
@@ -227,19 +252,15 @@ class MapsFragment : Fragment(), OnMapReadyCallback, GoogleMap.OnPolylineClickLi
             override fun onSlide(bottomSheet: View, slideOffset: Float) {}
         })
 
-        val bottomSheet = binding.bottomSheetLayoutMaps.bottomSheetLayout
-        bottomSheet.setOnClickListener {
-
-        }
-
-        val searchBoxText = binding.textSearchBoxMaps
-        searchBoxText.setOnClickListener {
+        searchBox = binding.textSearchBoxMaps
+        searchBox.setOnClickListener {
             triggerSearch()
         }
 
-        val openMenuButton = binding.buttonOpenMenuMaps
+        val openMenuButton = binding.buttonMenuMaps
         openMenuButton.setOnClickListener {
-            actionNavigation.openDrawer()
+            hideKeyboard()
+            navigationAction.openDrawer()
         }
 
         myLocationButton = binding.buttonMyLocationMaps
@@ -252,93 +273,118 @@ class MapsFragment : Fragment(), OnMapReadyCallback, GoogleMap.OnPolylineClickLi
             }
         }
 
-        if (actionNavigation.isEnabledCorte()) {
-            getDataBlockRoute()
+        if (navigationAction.isEnabledCorte()) {
+            getCortes()
         }
-        createTimerUpdate()
+        createTimerDrawing()
     }
 
-    private fun createTimerUpdate() {
-        timer = Timer()
+    private fun configurateServices() {
+        routeService = RouteService.create()
+    }
+
+    private fun configurateMyLocation() {
+        locationClient = LocationServices.getFusedLocationProviderClient(context!!)
+        locationRequest = LocationRequest()
+        locationRequest.interval = MAP_INTERVAL_LOCATION
+        locationRequest.fastestInterval = MAP_INTERVAL_LOCATION
+        locationRequest.priority = LocationRequest.PRIORITY_HIGH_ACCURACY
+        locationRequest.smallestDisplacement = MAP_SMALL_DISPLACEMENT
+        locationCallback = object : LocationCallback() {
+            override fun onLocationResult(locationResult: LocationResult?) {
+                locationResult ?: return
+                if (locationResult.locations.isNotEmpty()) {
+                    lastLocation = locationResult.lastLocation
+                    setUiMyLocation(lastLocation!!)
+                }
+            }
+        }
+    }
+
+    private fun createTimerDrawing() {
+        timerDrawing = Timer()
         val task = object : TimerTask() {
             override fun run() {
-                Log.i("createTimerUpdate", "UPDATE")
                 (context as Activity).runOnUiThread {
                     cleanMap()
-                    val result = mapEstacionamiento.toMutableMap()
-                    mapEstacionamiento.clear()
+                    val result = estacionamientos.toMutableMap()
+                    estacionamientos.clear()
                     result.forEach { pintarEstacionamiento(it.value) }
                 }
             }
         }
-        timer.schedule(task, TIME_TIMER_UPDATE, TIME_TIMER_UPDATE)
+        timerDrawing.schedule(task, TIMER_UPDATE, TIMER_UPDATE)
     }
 
-    private fun stopLocationUpdates() {
-        fusedLocationClient.removeLocationUpdates(locationCallBack)
+    private fun stopMyLocationUpdates() {
+        locationClient.removeLocationUpdates(locationCallback)
     }
 
     private fun disableMyLocation() {
         isMyLocationEnabled = false
         DrawableCompat.setTint(
             myLocationButton.drawable,
-            ContextCompat.getColor(context!!, R.color.colorLineDefault)
+            ContextCompat.getColor(context!!, R.color.color_line_default)
         )
-        stopLocationUpdates()
+        stopMyLocationUpdates()
     }
 
-    private fun getDataEstacionamiento(
+    private fun getEstacionamientos(
         latitude: Double,
         longitude: Double,
         radius: Double
     ) {
-        if (actionNavigation.isEnabledZona()) {
-            disposable = rutaService.getByRadius(latitude, longitude, radius)
+        timerDrawing.cancel()
+        if (navigationAction.isEnabledZona()) {
+            disposable = routeService.getByRadius(latitude, longitude, radius)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(
                     { result ->
                         cleanMap()
-                        mapEstacionamiento.clear()
+                        estacionamientos.clear()
                         result.forEach { pintarEstacionamiento(it) }
+                        createTimerDrawing()
                     },
                     { t -> Log.w("getDataEstacionamiento", t.message, t) })
         } else {
-            disposable = rutaService.getByPosition(latitude, longitude)
+            disposable = routeService.getByPosition(latitude, longitude)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(
                     { result ->
                         cleanMap()
-                        mapEstacionamiento.clear()
+                        estacionamientos.clear()
                         result.forEach { pintarEstacionamiento(it) }
+                        createTimerDrawing()
                     },
-                    { t -> Log.w("getDataEstacionamiento", t.message, t) })
+                    { t -> Log.w("Estacionamientos", t.message, t) })
         }
     }
 
-    private fun getDataBlockRoute() {
-        disposable = rutaService.getBlockRoute()
+    private fun getCortes() {
+        disposable = routeService.getBlockRoute()
             .subscribeOn(Schedulers.io())
             .observeOn(AndroidSchedulers.mainThread())
             .subscribe({ result ->
-                mapCorte.clear()
+                cortes.clear()
                 result.forEach { pintarCorte(it) }
-            }, { t -> Log.w("getDataBlockRoute", t.message, t) })
+            }, { t -> Log.w("Cortes", t.message, t) })
     }
 
     private fun cleanMap() {
-        mMap.clear()
-        if (actionNavigation.isEnabledCorte()) {
-            val result = mapCorte.toMutableMap()
-            mapCorte.clear()
+        map.clear()
+        if (navigationAction.isEnabledCorte()) {
+            val result = cortes.toMutableMap()
+            cortes.clear()
             result.forEach { pintarCorte(it.value) }
         }
         if (lastLocation != null) {
             lastLocationMarker = createMarker(
+                map,
                 LatLng(lastLocation!!.latitude, lastLocation!!.longitude),
                 bitmapDescriptorFromVector(context!!, R.drawable.ic_my_location, 1),
-                100F
+                MAP_MY_LOCATION_ZINDEX
             )
         }
     }
@@ -347,64 +393,40 @@ class MapsFragment : Fragment(), OnMapReadyCallback, GoogleMap.OnPolylineClickLi
 
     }
 
-    @AfterPermissionGranted(REQUEST_CODE_FINE_LOCATION)
-    private fun setMyLocation() {
-        val perms = arrayOf(Manifest.permission.ACCESS_FINE_LOCATION)
-        if (EasyPermissions.hasPermissions(activity as Context, *perms)) {
-            fusedLocationClient.requestLocationUpdates(
-                locationRequest,
-                locationCallBack,
-                Looper.getMainLooper()
-            )
-        } else {
-            EasyPermissions.requestPermissions(
-                this, getString(R.string.app_name),
-                REQUEST_CODE_FINE_LOCATION, *perms
-            )
-        }
-    }
-
     private fun setUiMyLocation(location: Location) {
-        Log.i("setMyLocation", location.toString())
+        Log.i("MyLocation", location.toString())
         val position = LatLng(location.latitude, location.longitude)
         lastLocationMarker?.remove()
         lastLocationMarker = createMarker(
+            map,
             position,
             bitmapDescriptorFromVector(context!!, R.drawable.ic_my_location, 1),
-            100F
+            MAP_MY_LOCATION_ZINDEX
         )
-        var zoom = mMap.cameraPosition.zoom
-        if (zoom < ZOOM_DEFAULT) {
-            zoom = ZOOM_DEFAULT
+        var zoom = map.cameraPosition.zoom
+        if (zoom < MAP_ZOOM_MY_LOCATION) {
+            zoom = MAP_ZOOM_MY_LOCATION
         }
         moveMapCamera(position, zoom)
 
         DrawableCompat.setTint(
             myLocationButton.drawable,
-            ContextCompat.getColor(context!!, R.color.colorAccent)
+            ContextCompat.getColor(context!!, R.color.color_accent)
         )
     }
 
-    private fun moveMapCamera(latitude: Double, longitude: Double, zoom: Float) {
-        this.moveMapCamera(LatLng(latitude, longitude), zoom)
-    }
-
-    private fun moveMapCamera(location: LatLng?) {
-        this.moveMapCamera(location, ZOOM_DEFAULT)
-    }
-
     private fun moveMapCamera(location: LatLng?, zoom: Float) {
-        mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(location, zoom))
+        map.animateCamera(CameraUpdateFactory.newLatLngZoom(location, zoom))
     }
 
     private fun pintarEstacionamiento(routeDto: RouteDto) {
-        val lineWidth = WIDTH_LINE_DEFAULT
+        val lineWidth = MAP_ESTACIONAMIENTO_LINE_WIDTH
         val pattern = when (routeDto.schedule.permit) {
-            TypeRoutePermit.PERMITIDO_ESTACIONAR_90_GRADO -> createPatternDot(1)
-            TypeRoutePermit.PERMITIDO_ESTACIONAR_45_GRADO -> createPatternDot(5)
+            TypeRoutePermit.PERMITIDO_ESTACIONAR_90_GRADO -> patternDot(1)
+            TypeRoutePermit.PERMITIDO_ESTACIONAR_45_GRADO -> patternDot(5)
             else -> null
         }
-        val idColor = evaluateSchedule(routeDto.schedule)
+        val idColor = getColorBySchedule(routeDto.schedule)
         val lineColor = ContextCompat.getColor(context!!, idColor)
 
         val polylineOptions = PolylineOptions()
@@ -417,8 +439,8 @@ class MapsFragment : Fragment(), OnMapReadyCallback, GoogleMap.OnPolylineClickLi
             polylineOptions.add(LatLng(it.latitude!!, it.longitude!!))
         }
 
-        val polyline = mMap.addPolyline(polylineOptions)
-        mapEstacionamiento[polyline.id] = routeDto
+        val polyline = map.addPolyline(polylineOptions)
+        estacionamientos[polyline.id] = routeDto
     }
 
     private fun pintarCorte(block: BlockRouteDto) {
@@ -441,98 +463,80 @@ class MapsFragment : Fragment(), OnMapReadyCallback, GoogleMap.OnPolylineClickLi
             else -> bitmapDescriptorFromVector(context!!, R.drawable.ic_block_black, 1)
         }
         val marker = createMarker(
+            map,
             LatLng(block.point?.latitude!!, block.point?.longitude!!),
             drawable
         )
-        mapCorte[marker.id] = block
+        cortes[marker.id] = block
     }
 
     private fun showInformationCorte(marker: Marker) {
-        val corte = mapCorte[marker.id]
+        val corte = cortes[marker.id]
         if (corte != null) {
-            var zoom = mMap.cameraPosition.zoom
+            var zoom = map.cameraPosition.zoom
             if (zoom < 17F) {
                 zoom = 17F
             }
             moveMapCamera(marker.position, zoom)
 
-            textTipo.text = corte.type?.value
-            textCreado.text = calculateTimeLapse(corte.started!!)
-            textTweet.text = corte.tweetData?.message
+            text_tipo.text = corte.type?.value
+            text_creado.text = calculateTimeLapse(corte.started!!)
+            text_tweet.text = corte.tweetData?.message
 
-            layoutCorteDetails.visibility = View.VISIBLE
-            layoutEstacionamientoDetails.visibility = View.GONE
+            layout_corte_details.visibility = View.VISIBLE
+            layout_estacionamiento_details.visibility = View.GONE
             showDetails()
         }
-    }
-
-    private fun calculateTimeLapse(started: OffsetDateTime): String {
-        val timeDifference = ""
-        val now = OffsetDateTime.now()
-
-        val duration = (now.toEpochSecond() - started.toEpochSecond()) * 1000
-
-        val diffInSeconds = TimeUnit.MILLISECONDS.toSeconds(duration)
-        val diffInMinutes = TimeUnit.MILLISECONDS.toMinutes(duration)
-        val diffInHours = TimeUnit.MILLISECONDS.toHours(duration)
-        val diffInDays = TimeUnit.MILLISECONDS.toDays(duration)
-
-        if (diffInDays > 365) {
-            return String.format("hace %d año", diffInDays / 365)
-        } else if (diffInDays > 1) {
-            return String.format("hace %d dias", diffInDays)
-        } else if (diffInHours > 1) {
-            return String.format("hace %d horas", diffInHours)
-        } else if (diffInMinutes > 1) {
-            return String.format("hace %d dias", diffInMinutes)
-        } else if (diffInSeconds > 1) {
-            return String.format("hace %d segundos", diffInSeconds)
-        }
-        return timeDifference
     }
 
     private fun showInformationEstacionamiento(polyline: Polyline) {
-        val route = mapEstacionamiento[polyline.id]
+        val route = estacionamientos[polyline.id]
         if (route != null) {
-            val center = getCenterOfPoints(polyline.points)
-            var zoom = mMap.cameraPosition.zoom
-            if (zoom < 17F) {
-                zoom = 17F
+            val center = getCenter(polyline.points)
+            var zoom = map.cameraPosition.zoom
+            if (zoom < MAP_ZOOM_ESTACIONAMIENTO) {
+                zoom = MAP_ZOOM_ESTACIONAMIENTO
             }
             moveMapCamera(center, zoom)
 
-            textCalle.text = route.details.calle
-            textAltura.text = route.details.altura
-            textHorario.text = route.details.horario
+            text_calle.text =
+                getString(R.string.text_numero_calle, route.details.altura, route.details.calle)
+            text_horario.text = route.details.horario
+            text_tipo_estacionamiento.text = route.schedule.permit?.value
+            layoutDetails.background = when (getColorBySchedule(route.schedule)) {
+                R.color.color_line_habilitado -> ContextCompat.getDrawable(
+                    context!!,
+                    R.drawable.shape_bottom_sheet_active
+                )
+                R.color.color_line_no_habilitado -> ContextCompat.getDrawable(
+                    context!!,
+                    R.drawable.shape_bottom_sheet_desactive
+                )
+                else -> ContextCompat.getDrawable(context!!, R.drawable.shape_bottom_sheet)
+            }
 
-            layoutCorteDetails.visibility = View.GONE
-            layoutEstacionamientoDetails.visibility = View.VISIBLE
+            layout_corte_details.visibility = View.GONE
+            layout_estacionamiento_details.visibility = View.VISIBLE
             showDetails()
         }
     }
 
-    private fun evaluateSchedule(schedule: RouteScheduleDto): Int {
+    private fun getColorBySchedule(schedule: RouteScheduleDto): Int {
         val now = OffsetDateTime.now()
         var applyTime = false
-        for (detail in schedule.details?: arrayListOf()) {
+        for (detail in schedule.details) {
             var foundDayWeek = false
             val daysWeek = detail.weekday?.split(WORD_COMA) ?: arrayListOf()
             for (dayWeekString in daysWeek) {
                 var dayWeek: DayOfWeek? = null
-                if (dayWeekString.equals(WORD_MONDAY, true)) {
-                    dayWeek = DayOfWeek.MONDAY
-                } else if (dayWeekString.equals(WORD_TUESDAY, true)) {
-                    dayWeek = DayOfWeek.TUESDAY
-                } else if (dayWeekString.equals(WORD_WEDNESDAY, true)) {
-                    dayWeek = DayOfWeek.WEDNESDAY
-                } else if (dayWeekString.equals(WORD_THURSDAY, true)) {
-                    dayWeek = DayOfWeek.THURSDAY
-                } else if (dayWeekString.equals(WORD_FRIDAY, true)) {
-                    dayWeek = DayOfWeek.FRIDAY
-                } else if (dayWeekString.equals(WORD_SUNDAY, true)) {
-                    dayWeek = DayOfWeek.SUNDAY
-                } else if (dayWeekString.equals(WORD_SATURDAY, true)) {
-                    dayWeek = DayOfWeek.SATURDAY
+                when {
+                    dayWeekString.equals(WORD_MONDAY, true) -> dayWeek = DayOfWeek.MONDAY
+                    dayWeekString.equals(WORD_TUESDAY, true) -> dayWeek = DayOfWeek.TUESDAY
+                    dayWeekString.equals(WORD_WEDNESDAY, true) -> dayWeek = DayOfWeek.WEDNESDAY
+                    dayWeekString.equals(WORD_THURSDAY, true) -> dayWeek = DayOfWeek.THURSDAY
+                    dayWeekString.equals(WORD_FRIDAY, true) -> dayWeek = DayOfWeek.FRIDAY
+                    dayWeekString.equals(WORD_SUNDAY, true) -> dayWeek = DayOfWeek.SUNDAY
+                    dayWeekString.equals(WORD_SATURDAY, true) -> dayWeek = DayOfWeek.SATURDAY
                 }
                 if (dayWeek != null && now.dayOfWeek == dayWeek) {
                     foundDayWeek = true
@@ -544,26 +548,27 @@ class MapsFragment : Fragment(), OnMapReadyCallback, GoogleMap.OnPolylineClickLi
                     applyTime = detail.isAllDay
                 }
                 if (!applyTime && detail.startTime != null && detail.endTime != null) {
-                    applyTime = now.toLocalTime().isAfter(detail.startTime.toLocalTime()) &&
-                            now.toLocalTime().isBefore(detail.endTime.toLocalTime())
+                    val day = OffsetDateTime.of(
+                        detail.startTime.toLocalDate(),
+                        now.toLocalTime(),
+                        now.offset
+                    )
+                    applyTime = day.isAfter(detail.startTime) && day.isBefore(detail.endTime)
                 }
             }
             if (applyTime) {
                 break
             }
         }
-
-        val idColor = when (schedule.permit) {
-            TypeRoutePermit.PROHIBIDO_ESTACIONAR -> if (applyTime) R.color.colorLineNoHabilitado else R.color.colorLineHabilitado
-            TypeRoutePermit.PROHIBIDO_ESTACIONAR_DETENERSE -> if (applyTime) R.color.colorLineNoHabilitado else R.color.colorLineHabilitado
-            TypeRoutePermit.PERMITIDO_ESTACIONAR -> if (applyTime) R.color.colorLineHabilitado else R.color.colorLineNoHabilitado
-            TypeRoutePermit.PERMITIDO_ESTACIONAR_90_GRADO -> if (applyTime) R.color.colorLineHabilitado else R.color.colorLineNoHabilitado
-            TypeRoutePermit.PERMITIDO_ESTACIONAR_45_GRADO -> if (applyTime) R.color.colorLineHabilitado else R.color.colorLineNoHabilitado
-            else -> R.color.colorLineDefault
+        return when (schedule.permit) {
+            TypeRoutePermit.PROHIBIDO_ESTACIONAR -> if (applyTime) R.color.color_line_no_habilitado else R.color.color_line_habilitado
+            TypeRoutePermit.PROHIBIDO_ESTACIONAR_DETENERSE -> if (applyTime) R.color.color_line_no_habilitado else R.color.color_line_habilitado
+            TypeRoutePermit.PERMITIDO_ESTACIONAR -> if (applyTime) R.color.color_line_habilitado else R.color.color_line_no_habilitado
+            TypeRoutePermit.PERMITIDO_ESTACIONAR_90_GRADO -> if (applyTime) R.color.color_line_habilitado else R.color.color_line_no_habilitado
+            TypeRoutePermit.PERMITIDO_ESTACIONAR_45_GRADO -> if (applyTime) R.color.color_line_habilitado else R.color.color_line_no_habilitado
+            else -> R.color.color_line_default
         }
-        return idColor
     }
-
 
     private fun showDetails() {
         if (!isShowDetails) {
@@ -574,109 +579,22 @@ class MapsFragment : Fragment(), OnMapReadyCallback, GoogleMap.OnPolylineClickLi
 
     private fun collapseDetails() {
         if (isShowDetails) {
+            layoutDetails.background =
+                ContextCompat.getDrawable(context!!, R.drawable.shape_bottom_sheet)
             isShowDetails = false
             bottomSheetBehavior.state = BottomSheetBehavior.STATE_COLLAPSED
         }
     }
 
-    private fun createMarker(
-        punto: LatLng,
-        resource: BitmapDescriptor
-    ): Marker {
-        return createMarker(punto, resource, 10F)
-    }
-
-    private fun createMarker(punto: LatLng,
-                             resource: BitmapDescriptor,
-                             zIndex: Float
-    ): Marker {
-        val markerOptions = MarkerOptions()
-            .position(punto)
-            .icon(resource)
-            .zIndex(zIndex)
-        return mMap.addMarker(markerOptions)
-    }
-
     private fun setCiudad() {
-        val latitude = LATITUDE_DEFAULT
-        val longitude = LONGITUDE_DEFAULT
-        val radius = RADIUS_DEFAULT
+        val latitude = MAP_LATITUDE_DEFAULT
+        val longitude = MAP_LONGITUDE_DEFAULT
+        val radius = MAP_RADIUS_DEFAULT
 
-        moveMapCamera(latitude, longitude, radius)
+        moveMapCamera(LatLng(latitude, longitude), radius)
     }
 
-    private fun getCenterOfPoints(points: List<LatLng>): LatLng? {
-        var minLat = Double.POSITIVE_INFINITY
-        var maxLat = Double.NEGATIVE_INFINITY
-        var minLon = Double.POSITIVE_INFINITY
-        var maxLon = Double.NEGATIVE_INFINITY
-
-        for (point in points) {
-            maxLat = max(point.latitude, maxLat)
-            minLat = min(point.latitude, minLat)
-            maxLon = max(point.longitude, maxLon)
-            minLon = min(point.longitude, minLon)
-        }
-        return LatLng((maxLat + minLat) / 2, (maxLon + minLon) / 2)
-    }
-
-    private fun createPatternDot(multiple: Int): ArrayList<PatternItem> {
-        val dot = Dot()
-        val gap = Gap(PATTERN_GAP_LENGTH_PX * multiple)
-        return arrayListOf(gap, dot)
-    }
-
-    private fun getMapVisibleRadius(): Double {
-        val visibleRegion: VisibleRegion? = mMap.projection?.visibleRegion
-
-        val distanceWidth = FloatArray(1)
-        val distanceHeight = FloatArray(1)
-
-        val farRight: LatLng? = visibleRegion?.farRight
-        val farLeft: LatLng? = visibleRegion?.farLeft
-        val nearRight: LatLng? = visibleRegion?.nearRight
-        val nearLeft: LatLng? = visibleRegion?.nearLeft
-
-        Location.distanceBetween(
-            (farLeft!!.latitude + nearLeft!!.latitude) / 2,
-            farLeft.longitude,
-            (farRight!!.latitude + nearRight!!.latitude) / 2,
-            farRight.longitude, distanceWidth
-        )
-
-        Location.distanceBetween(
-            farRight.latitude,
-            (farRight.longitude + farLeft.longitude) / 2,
-            nearRight.latitude,
-            (nearRight.longitude + nearLeft.longitude) / 2,
-            distanceHeight
-        )
-
-        return sqrt(
-            (distanceWidth[0].toString().toDouble().pow(2.0))
-                    + distanceHeight[0].toString().toDouble().pow(2.0)
-        ) / 2
-    }
-
-    private fun bitmapDescriptorFromVector(
-        context: Context,
-        vectorResId: Int,
-        multiple: Int
-    ): BitmapDescriptor {
-        val vectorDrawable = ContextCompat.getDrawable(context, vectorResId)
-        vectorDrawable!!.setBounds(
-            0,
-            0,
-            vectorDrawable.intrinsicWidth * multiple,
-            vectorDrawable.intrinsicHeight * multiple
-        )
-        val bitmap = Bitmap.createBitmap(
-            vectorDrawable.intrinsicWidth * multiple,
-            vectorDrawable.intrinsicHeight * multiple,
-            Bitmap.Config.ARGB_8888
-        )
-        val canvas = Canvas(bitmap)
-        vectorDrawable.draw(canvas)
-        return BitmapDescriptorFactory.fromBitmap(bitmap)
+    private fun hideKeyboard() {
+        hideSoftKeyboard(searchBox, activity)
     }
 }

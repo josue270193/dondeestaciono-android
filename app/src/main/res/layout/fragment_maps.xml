@@ -26,28 +26,34 @@
             android:orientation="horizontal">
 
             <androidx.appcompat.widget.AppCompatImageButton
-                android:id="@+id/button_open_menu_maps"
-                android:layout_width="56dp"
-                android:layout_height="48dp"
+                android:id="@+id/button_menu_maps"
+                android:layout_width="55dp"
+                android:layout_height="match_parent"
                 android:paddingStart="0dp"
                 android:paddingLeft="0dp"
                 android:paddingEnd="8dp"
                 android:paddingRight="8dp"
                 android:scaleType="center"
-                android:tint="@color/colorMenuIcon"
+                android:tint="@color/color_menu_icon"
                 app:backgroundTint="@android:color/transparent"
                 app:srcCompat="@drawable/ic_menu_black" />
 
-            <EditText
-                android:id="@+id/text_search_box_maps"
+            <com.google.android.material.textfield.TextInputLayout
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:gravity="center_vertical"
-                android:hint="@string/search_box_tips"
-                android:importantForAutofill="no"
-                android:inputType="text"
-                android:background="@android:color/transparent"
-                />
+                android:layout_height="wrap_content"
+                app:endIconMode="clear_text"
+                app:hintEnabled="false">
+
+                <EditText
+                    android:id="@+id/text_search_box_maps"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="@android:color/transparent"
+                    android:hint="@string/search_box_tips"
+                    android:importantForAutofill="no"
+                    android:inputType="text"
+                    android:paddingTop="12dp" />
+            </com.google.android.material.textfield.TextInputLayout>
         </LinearLayout>
 
         <com.google.android.material.floatingactionbutton.FloatingActionButton
@@ -58,41 +64,28 @@
             android:layout_marginEnd="@dimen/fab_margin"
             android:layout_marginRight="@dimen/fab_margin"
             android:layout_marginBottom="@dimen/fab_margin_bottom_sheet"
-            app:backgroundTint="@color/colorBackgroundFloating"
-            app:layout_anchor="@id/bottom_sheet_layout_maps"
+            app:backgroundTint="@color/color_background_floating"
+            app:layout_anchor="@id/layout_details_maps"
             app:layout_anchorGravity="end"
             app:srcCompat="@drawable/ic_my_location_black"
             tools:ignore="RtlHardcoded" />
 
-        <LinearLayout
+        <com.google.android.material.floatingactionbutton.FloatingActionButton
+            android:id="@+id/button_references"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_gravity="top|center"
+            android:layout_gravity="start|top|left"
+            android:layout_marginStart="@dimen/fab_margin"
+            android:layout_marginLeft="@dimen/fab_margin"
             android:layout_marginBottom="@dimen/fab_margin_bottom_sheet"
-            app:layout_anchor="@id/bottom_sheet_layout_maps"
-            app:layout_anchorGravity="center"
-            >
-
-            <TextView
-                android:id="@+id/textView1"
-                android:layout_width="100dp"
-                android:layout_height="wrap_content"
-                android:textAlignment="center"
-                android:textColor="@color/colorText"
-                android:background="@color/colorLineHabilitado"
-                android:text="@string/habilitado" />
-            <TextView
-                android:id="@+id/textView2"
-                android:layout_width="100dp"
-                android:layout_height="wrap_content"
-                android:textAlignment="center"
-                android:textColor="@color/colorTextLight"
-                android:background="@color/colorLineNoHabilitado"
-                android:text="@string/no_habilitado"  />
-        </LinearLayout>
+            app:backgroundTint="@color/color_background_floating"
+            app:layout_anchor="@id/layout_details_maps"
+            app:layout_anchorGravity="start"
+            app:srcCompat="@drawable/ic_help_black"
+            tools:ignore="RtlHardcoded" />
 
         <include
-            android:id="@+id/bottom_sheet_layout_maps"
-            layout="@layout/bottom_sheet_maps" />
+            android:id="@+id/layout_details_maps"
+            layout="@layout/layout_details_maps" />
     </androidx.coordinatorlayout.widget.CoordinatorLayout>
 </layout>

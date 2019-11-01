@@ -93,7 +93,7 @@
     </item>
     <item>
         <shape>
-            <solid android:color="@color/colorSearchBoxBackground" />
+            <solid android:color="@color/color_search_box_background" />
             <corners android:radius="10dp" />
         </shape>
     </item>

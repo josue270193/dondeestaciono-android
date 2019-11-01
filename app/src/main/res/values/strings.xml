@@ -14,5 +14,12 @@
 
     <string name="habilitado">Habilitado</string>
     <string name="no_habilitado">No habilitado</string>
+    <string name="label_calle">Calle</string>
+    <string name="label_altura">Altura</string>
+    <string name="label_horario">Horario</string>
+    <string name="label_tipo">Tipo</string>
+    <string name="label_creado">Creado</string>
+    <string name="label_tweet">Tweet</string>
 
+    <string name="text_numero_calle">%1$s %2$s</string>
 </resources>

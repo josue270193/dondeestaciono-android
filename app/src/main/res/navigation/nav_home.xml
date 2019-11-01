@@ -2,9 +2,9 @@
 <navigation xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/nav_maps"
-    app:startDestination="@id/mapsFragment">
+    app:startDestination="@id/maps_fragment">
 
     <fragment
-        android:id="@+id/mapsFragment"
+        android:id="@+id/maps_fragment"
         android:name="uni.app.dondeestacionomobile.fragment.MapsFragment" />
 </navigation>

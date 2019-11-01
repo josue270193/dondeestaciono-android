@@ -1,24 +1,22 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="colorPrimary">#AFC1D8</color>
-    <color name="colorPrimaryDark">#001B26</color>
-    <color name="colorAccent">#2196F3</color>
-    <color name="colorText">#666666</color>
-    <color name="colorTextLight">#CCCCCC</color>
+    <color name="color_launcher_background">#001B26</color>
+    <color name="color_primary">#AFC1D8</color>
+    <color name="color_primary_dark">#001B26</color>
+    <color name="color_accent">#2196F3</color>
+    <color name="color_text">#666666</color>
+    <color name="color_text_light">#CCCCCC</color>
 
-    <color name="colorSearchBoxBackground">#FFFFFF</color>
-    <color name="colorSearchBoxLine">#9B9B9B</color>
-    <color name="colorMenuIcon">#000000</color>
-    <color name="colorBackgroundFloating">#FFFFFF</color>
-    <color name="colorBottomSheetBackground">#FFFFFF</color>
+    <color name="color_search_box_background">#FFFFFF</color>
+    <color name="color_search_box_line">#9B9B9B</color>
+    <color name="color_menu_icon">#000000</color>
+    <color name="color_background_floating">#FFFFFF</color>
+    <color name="color_bottom_sheet_background">#FFFFFF</color>
 
-    <color name="colorLineDefault">#000000</color>
-    <color name="colorLineProhibidoEstacionar">#FF7600</color>
+    <color name="color_line_default">#000000</color>
+    <color name="color_line_prohibido_estacionar">#FF7600</color>
     <color name="colorLineProhibidoDetenerse">#4A148C</color>
-    <color name="colorLineHabilitado1">#52B952</color>
-    <color name="colorLineHabilitado2">#006064</color>
-    <color name="colorLineHabilitado3">#1B5E20</color>
 
-    <color name="colorLineHabilitado">#0FD600</color>
-    <color name="colorLineNoHabilitado">#F26735</color>
+    <color name="color_line_habilitado">#0FD600</color>
+    <color name="color_line_no_habilitado">#F26735</color>
 </resources>
